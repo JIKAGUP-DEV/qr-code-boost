@@ -7,6 +7,18 @@ services:
     volumes:
       - mongo-data:/data/db 
   
+  api:
+    container_name: qr-code-boost-api
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  
 volumes:
   db_data:
     driver: local

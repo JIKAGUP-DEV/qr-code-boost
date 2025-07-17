@@ -127,6 +127,10 @@ paths:
         name: slug
         required: true
         type: string
+      - description: 'Maximum distance in meters (default: 3000 or 3km)'
+        in: query
+        name: maxDistance
+        type: integer
       produces:
       - application/json
       responses:

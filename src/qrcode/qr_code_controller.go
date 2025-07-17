@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,6 +21,11 @@ type CreateQRCodeDto struct {
 type QRCodeController struct {
 	MongoClient    *mongo.Client
 	PostgresClient *sql.DB
+}
+
+type CoordinatesDto struct {
+	Lat  *float64 `json:"lat"`
+	Long *float64 `json:"long"`
 }
 
 // @Summary      Find QR Code by Slug
@@ -40,7 +46,31 @@ func (u *QRCodeController) AccessQRCode(c *gin.Context) {
 		return
 	}
 
-	qrCode, err := AccessQRCode(slug, u.MongoClient)
+	latitudeStr := c.GetHeader("X-User-Latitude")
+	longitudeStr := c.GetHeader("X-User-Longitude")
+
+	var latitude float64
+	var longitude float64
+
+	if latitudeStr != "" {
+		latFloat, err := strconv.ParseFloat(latitudeStr, 64)
+		if err == nil {
+			latitude = latFloat
+		}
+	}
+	if longitudeStr != "" {
+		longFloat, err := strconv.ParseFloat(longitudeStr, 64)
+		if err == nil {
+			longitude = longFloat
+		}
+	}
+
+	coordinates := CoordinatesDto{
+		Lat:  &latitude,
+		Long: &longitude,
+	}
+
+	qrCode, err := AccessQRCode(slug, coordinates, u.MongoClient)
 
 	if err != nil {
 		fmt.Printf("Erro ao buscar QR Code: %v", err)
@@ -98,7 +128,7 @@ func (u *QRCodeController) CreateQRCode(c *gin.Context) {
 	err := c.ShouldBindJSON(&createQRCodeDto)
 
 	if err != nil {
-		fmt.Println("Corpo da requisição inválido")
+		fmt.Printf("Corpo da requisição inválido | %v", err)
 		c.IndentedJSON(400, gin.H{
 			"message": "Corpo da requisição inválido.",
 			"status":  400,
@@ -125,6 +155,7 @@ func (u *QRCodeController) CreateQRCode(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        slug path string true "QR Code Slug"
+// @Param 			 maxDistance query int false "Maximum distance in meters (default: 3000 or 3km)"
 // @Success      200 {array} models.Scan
 // @Router       /qr/near/{slug} [get]
 func (u *QRCodeController) FindNearScans(c *gin.Context) {
@@ -138,8 +169,26 @@ func (u *QRCodeController) FindNearScans(c *gin.Context) {
 		return
 	}
 
+	var maxDistance int64 = 3000
+
+	maxDistanceQuery := c.Query("maxDistance")
+	if maxDistanceQuery != "" {
+		parsedDistance, errQuery := strconv.ParseInt(maxDistanceQuery, 10, 64)
+
+		if errQuery != nil {
+			fmt.Printf("Erro ao converter maxDistance: %v", errQuery)
+			c.IndentedJSON(400, gin.H{
+				"message": "Parâmetro maxDistance inválido.",
+				"status":  400,
+			})
+			return
+		}
+
+		maxDistance = parsedDistance
+	}
+
 	fmt.Printf("\n Buscando scans próximos para o QR Code com slug: %s\n", slug)
-	scans, err := FindNearScans(slug, u.MongoClient)
+	scans, err := FindNearScans(slug, maxDistance, u.MongoClient)
 
 	if err != nil {
 		fmt.Printf("Erro ao buscar scans próximos: %v", err)

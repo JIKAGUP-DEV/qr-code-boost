@@ -76,6 +76,12 @@ const docTemplate = `{
                         "name": "slug",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum distance in meters (default: 3000 or 3km)",
+                        "name": "maxDistance",
+                        "in": "query"
                     }
                 ],
                 "responses": {

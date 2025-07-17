@@ -17,6 +17,10 @@ type CreateScanDto struct {
 	Long     *float64           `bson:"long"`
 }
 
+type FindNearScansFilterDto struct {
+	MaxDistance *int64
+}
+
 func Create(dto CreateScanDto, client *mongo.Client) (models.Scan, error) {
 	fmt.Printf("Criando scan para QR Code ID: %s\n", dto.QRCodeId.Hex())
 
@@ -75,10 +79,16 @@ func FindQRCodeById(qrCodeId primitive.ObjectID, client *mongo.Client) (models.Q
 	return result, nil
 }
 
-func FindNearScans(qrCode models.QRCode, client *mongo.Client) ([]models.Scan, error) {
+func FindNearScans(filterDto FindNearScansFilterDto, qrCode models.QRCode, client *mongo.Client) ([]models.Scan, error) {
 	coll := client.Database("qr-code-boost").Collection("scans")
 
 	centerPoint := qrCode.Location
+
+	var defaultDistance int64 = 3000
+	maxDistance := defaultDistance
+	if filterDto.MaxDistance != nil {
+		maxDistance = *filterDto.MaxDistance
+	}
 
 	filter := bson.D{
 		{
@@ -89,7 +99,7 @@ func FindNearScans(qrCode models.QRCode, client *mongo.Client) ([]models.Scan, e
 					Key: "$nearSphere",
 					Value: bson.D{
 						{Key: "$geometry", Value: centerPoint},
-						{Key: "$maxDistance", Value: 3000}, // 3km
+						{Key: "$maxDistance", Value: maxDistance}, // 3km
 					},
 				},
 			},

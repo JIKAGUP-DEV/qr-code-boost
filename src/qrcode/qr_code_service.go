@@ -182,40 +182,26 @@ func FindById(qrCodeId string, client *mongo.Client) (models.QRCode, error) {
 	return result, nil
 }
 
-func AccessQRCode(slug string, client *mongo.Client) (QRCodeWithURL, error) {
-	webURL, envErr := config.GetEnvVariable("WEB_URL")
-
-	if envErr != nil {
-		return QRCodeWithURL{}, envErr
-	}
-
+func AccessQRCode(slug string, dto CoordinatesDto, client *mongo.Client) (models.QRCode, error) {
 	qrCode, err := FindBySlug(slug, client)
 	if err != nil {
 		fmt.Printf("\n\n [QRCODE SERVICE AccessQRCode] Erro ao encontrar QR Code: %v\n\n", err)
-		return QRCodeWithURL{}, err
+		return models.QRCode{}, err
 	}
-
-	lat := -12.967582745209574
-	long := -38.4924345452901
 
 	fmt.Printf("QR Code encontrado: %s\n", qrCode.Slug)
 	_, err = scan.Create(scan.CreateScanDto{
 		QRCodeId: qrCode.ID,
-		Lat:      &lat,
-		Long:     &long,
+		Lat:      dto.Lat,
+		Long:     dto.Long,
 	}, client)
 
 	if err != nil {
 		fmt.Printf("\n\n [QRCODE SERVICE AccessQRCode] Erro ao criar scan: %v\n\n", err)
-		return QRCodeWithURL{}, err
+		return models.QRCode{}, err
 	}
 
-	qrCodeCreated := QRCodeWithURL{
-		QRCode: qrCode,
-		Url:    webURL + "/qr/" + qrCode.Slug,
-	}
-
-	return qrCodeCreated, nil
+	return qrCode, nil
 }
 
 func FindBySlug(slug string, client *mongo.Client) (models.QRCode, error) {
@@ -237,7 +223,7 @@ func FindBySlug(slug string, client *mongo.Client) (models.QRCode, error) {
 	return result, nil
 }
 
-func FindNearScans(slug string, client *mongo.Client) ([]models.Scan, error) {
+func FindNearScans(slug string, maxDistance int64, client *mongo.Client) ([]models.Scan, error) {
 	qrCode, err := FindBySlug(slug, client)
 
 	if err != nil {
@@ -245,7 +231,11 @@ func FindNearScans(slug string, client *mongo.Client) ([]models.Scan, error) {
 		return nil, err
 	}
 
-	scans, err := scan.FindNearScans(qrCode, client)
+	findNearScansFilterDto := scan.FindNearScansFilterDto{
+		MaxDistance: &maxDistance,
+	}
+
+	scans, err := scan.FindNearScans(findNearScansFilterDto, qrCode, client)
 
 	if err != nil {
 		fmt.Printf("\n\n [QRCODE SERVICE FindNearScans] Erro ao buscar scans próximos: %v\n\n", err)
