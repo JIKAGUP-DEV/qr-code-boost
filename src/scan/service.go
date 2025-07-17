@@ -3,7 +3,7 @@ package scan
 import (
 	"context"
 	"fmt"
-	"qr-code-boost/mongo/models"
+	"qr-code-boost/src/mongo/models"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

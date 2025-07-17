@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"qr-code-boost/mongo"
-	"qr-code-boost/postgres"
+	"qr-code-boost/src/mongo"
+	"qr-code-boost/src/postgres"
 	"qr-code-boost/src/qrcode"
 
 	"github.com/joho/godotenv"

@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"qr-code-boost/config"
+	"qr-code-boost/src/config"
 	"qr-code-boost/src/user"
 
-	"qr-code-boost/mongo/models"
+	"qr-code-boost/src/mongo/models"
 
 	"qr-code-boost/src/scan"
 
