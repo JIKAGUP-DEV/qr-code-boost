@@ -1,0 +1,247 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is an API for managing users and QR codes.",
+        "title": "QR Code Boost API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/qr": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "Create a QR Code",
+                "parameters": [
+                    {
+                        "description": "QR Code Payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/qrcode.CreateQRCodeDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/qrcode.QRCodeWithURL"
+                        }
+                    }
+                }
+            }
+        },
+        "/qr/near/{slug}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "Find scans near a QR Code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "QR Code Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Scan"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/qr/user/{userId}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "List QR Codes from a specific user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/qrcode.QRCodeWithURL"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/qr/{slug}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "Find QR Code by Slug",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "QR Code Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/qrcode.QRCodeWithURL"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Location": {
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "description": "Array com [longitude, latitude]",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "type": {
+                    "description": "Será sempre \"Point\"",
+                    "type": "string"
+                }
+            }
+        },
+        "models.Scan": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/models.Location"
+                },
+                "qrcodeId": {
+                    "type": "string"
+                },
+                "scanedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "qrcode.CreateQRCodeDto": {
+            "type": "object",
+            "required": [
+                "lat",
+                "link",
+                "long",
+                "slug",
+                "userId"
+            ],
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "long": {
+                    "type": "number"
+                },
+                "slug": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 2
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "qrcode.QRCodeWithURL": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/models.Location"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
