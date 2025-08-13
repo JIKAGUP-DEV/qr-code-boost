@@ -13,6 +13,7 @@ func InternalOnlyMiddleware() gin.HandlerFunc {
 		allowedCIDRs := []string{
 			"172.20.0.0/16", // REDE DO DOCKER COMPOSE
 			"127.0.0.0/8",   // Loopback (?)
+			"10.0.0.0/8",    // Rede privada (?)
 		}
 
 		for _, cidr := range allowedCIDRs {
