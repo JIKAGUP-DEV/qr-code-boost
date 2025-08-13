@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"qr-code-boost/src/mongo"
 	"qr-code-boost/src/postgres"
 	"qr-code-boost/src/qrcode"
@@ -80,8 +81,13 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	fmt.Printf("\n %sAPI running on http://localhost:8080 \n", "\x1b[32m")
-	fmt.Printf("\n Docs available on http://localhost:8080/swagger/index.html%s \n \n", "\x1b[0m")
-	router.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Valor padrão caso a variável não seja definida
+	}
+
+	fmt.Printf("\n %sAPI running on http://localhost:%s \n", "\x1b[32m", port)
+	fmt.Printf("\n Docs available on http://localhost:%s/swagger/index.html%s \n \n", port, "\x1b[0m")
+	router.Run(":" + port)
 
 }

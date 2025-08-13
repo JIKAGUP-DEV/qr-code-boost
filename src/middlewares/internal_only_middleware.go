@@ -8,20 +8,16 @@ import (
 
 func InternalOnlyMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ip := c.ClientIP()
+		ip := net.ParseIP(c.ClientIP())
 
-		allowedIPs := []string{
-			"172.18.0.0/16", // exemplo: rede Docker interna
-			"127.0.0.1",     // localhost
-			"10.0.0.0/8",    // redes internas
+		allowedCIDRs := []string{
+			"172.20.0.0/16", // REDE DO DOCKER COMPOSE
+			"127.0.0.0/8",   // Loopback (?)
 		}
 
-		for _, cidr := range allowedIPs {
+		for _, cidr := range allowedCIDRs {
 			_, subnet, _ := net.ParseCIDR(cidr)
-
-			parsedIP := net.ParseIP(ip)
-
-			if subnet.Contains(parsedIP) {
+			if subnet.Contains(ip) {
 				c.Next()
 				return
 			}
