@@ -8,12 +8,21 @@ import (
 
 func InternalOnlyMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ip := net.ParseIP(c.ClientIP())
+		// Obter IP real através do Cloudflare
+		realIP := c.GetHeader("CF-Connecting-IP")
+		if realIP == "" {
+			realIP = c.GetHeader("X-Real-IP")
+		}
+		if realIP == "" {
+			realIP = c.ClientIP()
+		}
+
+		ip := net.ParseIP(realIP)
 
 		allowedCIDRs := []string{
-			"172.20.0.0/16", // REDE DO DOCKER COMPOSE
-			"127.0.0.0/8",   // Loopback (?)
-			"10.0.0.0/8",    // Rede privada (?)
+			"172.28.0.0/16", // Rede Docker
+			"127.0.0.0/8",   // Localhost
+			"10.0.0.0/8",    // Redes privadas
 		}
 
 		for _, cidr := range allowedCIDRs {
